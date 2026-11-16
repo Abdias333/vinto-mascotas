@@ -501,12 +501,15 @@ def reportes_publicos():
                 f_color = campo("Color").classes("w-40")
                 f_zona = seleccion("Zona", OPCIONES_ZONA, "").classes("w-48")
                 f_estado = seleccion("Estado", OPCIONES_ESTADO, "ACTIVO").classes("w-48")
+                f_desde = campo("Perdido desde").props("type=date stack-label").classes("w-44")
+                f_hasta = campo("Perdido hasta").props("type=date stack-label").classes("w-44")
                 ui.button("Aplicar filtros", on_click=lambda: lista.refresh()).props("unelevated no-caps")
 
         @ui.refreshable
         def lista():
             filtros = dict(especie=f_especie.value, raza=f_raza.value, color=f_color.value,
-                           zona=f_zona.value, estado=f_estado.value)
+                           zona=f_zona.value, estado=f_estado.value,
+                           desde=f_desde.value, hasta=f_hasta.value)
             datos = c.reportes.buscar(filtros)
             with ui.element("div").classes("vm-panel"):
                 ui.label(f"{len(datos)} resultado(s)").classes("vm-small")

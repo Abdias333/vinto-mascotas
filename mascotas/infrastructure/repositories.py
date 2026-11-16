@@ -1,7 +1,7 @@
 """Adaptadores de persistencia: implementan los puertos con SQLAlchemy."""
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
 
 from sqlalchemy import func, select, update
@@ -30,6 +30,14 @@ from mascotas.infrastructure.db import (
     ReporteModel,
     UsuarioModel,
 )
+
+
+def _fecha_iso(valor):
+    """Convierte 'AAAA-MM-DD' en datetime; devuelve None si no es una fecha válida."""
+    try:
+        return datetime.fromisoformat(str(valor))
+    except ValueError:
+        return None
 
 
 class SqlUsuarioRepository(IUsuarioRepository):
@@ -132,6 +140,14 @@ class SqlReporteRepository(IReporteRepository):
             stmt = stmt.where(ReporteModel.raza.ilike(f"%{filtros['raza']}%"))
         if "color" in filtros:
             stmt = stmt.where(ReporteModel.color.ilike(f"%{filtros['color']}%"))
+        if "desde" in filtros:
+            desde = _fecha_iso(filtros["desde"])
+            if desde:
+                stmt = stmt.where(ReporteModel.fecha_perdida >= desde)
+        if "hasta" in filtros:
+            hasta = _fecha_iso(filtros["hasta"])
+            if hasta:  # se suma un día para incluir todo el día "hasta"
+                stmt = stmt.where(ReporteModel.fecha_perdida < hasta + timedelta(days=1))
         with self._sf() as s:
             return [self._dom(m) for m in s.scalars(stmt)]
 
